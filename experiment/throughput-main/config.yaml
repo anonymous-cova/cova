@@ -1,0 +1,37 @@
+---
+target:
+  - archie-day
+  # - jackson
+  # - taipei-road
+  # - zurich
+  # - netherland-rail
+  # - shinjuku
+  # - venice-rlato
+  # - amsterdam
+  # - zurich
+
+model:
+  - /workspace/config/rnn/yolov4.txt
+  # - /workspace/config/rnn/yolov3.txt
+  # - /workspace/config/rnn/ssd.txt
+
+dataset:
+  archie-day:
+    video:
+      - /ssd4/high/archie-day/day1.mp4
+      - /ssd4/high/archie-day/day2.mp4
+      - /ssd4/high/archie-day/day3.mp4
+    gt:
+      - /ssd4/high/archie-day/day1.csv
+      - /ssd4/high/archie-day/day2.csv
+      - /ssd4/high/archie-day/day3.csv
+    inferi:
+      - 'TRUE'
+    object:
+      - car
+      - bus
+    model: /workspace/config/fcn/archie-day.txt
+    cc:
+      - 0
+    minhits:
+      - 50

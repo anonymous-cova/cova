@@ -1,0 +1,24 @@
+gproperty]
+process-mode=1
+batch-size=128
+gpu-id=0
+net-scale-factor=1
+# 0: RGB, 1: BGR
+model-color-format=0
+
+# Model PATH
+model-engine-file=/workspace/model/trt_model/cova/archie-day/180x80_TEMPUNET
+
+# 0: FP32, 1: INT8, 2: FP16 mode
+network-mode=2
+
+gie-unique-id=1
+# 0: Detector, 1: Classifier, 2: Segmentation, 3: Instance Segmentation
+network-type=2
+maintain-aspect-ratio=1
+
+# 0: NCHW, 1: NHWC
+segmentation-output-order=0
+segmentation-threshold=0.5
+workspace-size=2000
+

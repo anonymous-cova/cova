@@ -1,0 +1,11 @@
+bin:
+    trt: /ssd4/TensorRT-7.2.1.6/bin/trtexec
+
+path:
+    tf: tf_model
+    onnx: onnx_model
+    trt: trt_model
+
+label_file:
+    jackson-town-square: ../../third_parties/DeepStream-Yolo/native/labels.txt
+    taipei-hires: ../../third_parties/DeepStream-Yolo/native/labels.txt
