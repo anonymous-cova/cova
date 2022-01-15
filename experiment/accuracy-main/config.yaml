@@ -1,4 +1,6 @@
-last: 'nvinfer_dnn'
+input_file: /ssd2/h264/{dataset}/day{day}.mp4
+output_root: ./logs/
+last: 'full'
 sink: fakesink
 
 width: 1280
@@ -6,13 +8,13 @@ height: 720
 timestep: 4
 
 ##############################################################################
-queue_size: 0
+queue_size: 10000
 
 
 ##########
 # entdec #
 ##########
-num_entdec: 32
+num_entdec: 1
 entdec_add_queue: False
 
 ##################
@@ -30,14 +32,16 @@ nvvideoconvert_up_output_buffers: 512
 ####################
 # nvstreammux_mask #
 ####################
-num_mask: 16
+num_mask: 1
 mask_batch_size: 512
-mask_pool_size: 1024
+mask_pool_size: 512
+mask_batched_push_timeout: -1
 nvstreammux_mask_add_queue: False
 
 ################
 # nvinfer_mask #
 ###############i#
+nvinfer_mask_config: /workspace/deepstream/config/fcn/vldb/{dataset}_b512.txt
 nvinfer_mask_add_queue: True
 
 ######################
@@ -50,46 +54,56 @@ nvstreamdemux_mask_add_queue: False
 ############
 maskcopy_add_queue: False
 
+
 ########
 # cova #
 ########
-cova_alpha: 1
-cova_beta: 1
+cova_alpha: 0
+cova_beta: 0
+cova_infer_i: True
+cova_cc_threshold: 1
 cova_sort_iou: 0.1
-cova_port: 0
-cova_add_queue: True
+cova_sort_maxage: {maxage}
+cova_sort_minhits: {minhit}
+cova_add_queue: False
+cova_port: {track_port}
 
 ##########
 # funnel #
 ##########
-num_nvdec: 32
+num_nvdec: 1
 funnel_add_queue: False
 
 #########
 # nvdec #
 #########
-nvdec_num_extra_surfaces: 4
+nvdec_num_extra_surfaces: 24
 nvdec_add_queue: False
 
 ############
 # identity #
 ############
-identity_add_queue: False
+identity_add_queue: True
+
+#########
+# nvpts #
+#########
+nvpts_add_queue: False
 
 ###################
 # nvstreammux_dnn #
 ###################
-num_dnn: 4
-dnn_batch_size: 2
+num_dnn: 1
+dnn_batch_size: 1
 dnn_pool_size: 32
-dnn_batched_push_timeout: 10
-nvstreammux_dnn_add_queue: True
+dnn_batched_push_timeout: -1
+nvstreammux_dnn_add_queue: False
 
 ###############
 # nvinfer_dnn #
 ###############
-nvinfer_dnn_config: /workspace/deepstream/config/rnn/yolov5.txt
-nvinfer_dnn_add_queue: True
+nvinfer_dnn_config: /workspace/deepstream/config/rnn/yolov4_b2.txt
+nvinfer_dnn_add_queue: False
 
 #####################
 # nvstreamdemux_dnn #
@@ -104,12 +118,7 @@ probefilter_add_queue: False
 ############
 # tcpprobe #
 ############
-tcpprobe_port: 0
+tcpprobe_port: {dnn_port}
 tcpprobe_add_queue: False
 
-input_file: /ssd2/h264/amsterdam/day1-4h.mp4
-nvinfer_mask_config: /workspace/deepstream/config/fcn/vldb/amsterdam_b512.txt
-cova_cc_threshold: 2
-cova_sort_maxage: 50
-cova_sort_minhits: 30
-output_root: ./logs/
+
