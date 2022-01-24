@@ -5,5 +5,4 @@ if [[ $# -ne 1 ]]; then
     exit 1
 fi
 
-DOCKER_BUILDKIT=1 docker build . -t jinwooh/deepstream:$1
-# DOCKER_BUILDKIT=1 docker build --progress=plain .
+DOCKER_BUILDKIT=1 docker build . -t cova:$1

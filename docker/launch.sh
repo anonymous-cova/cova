@@ -1,6 +1,6 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-IMAGE=jinwooh/deepstream
+IMAGE=cova
 TAG=py3.7
 
 if [ "$#" -eq 2 ]; then

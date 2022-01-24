@@ -108,4 +108,4 @@ cargo run REDIS_PORT CONFIG_PATH
 
 ### Demo
 #### Compressed Domain Mask Extraction
-![demo/demo.gif](https://github.com/casys-kaist/CoVA/blob/master/demo/demo.gif?raw=true)
+![demo/demo.gif](https://github.com/anonymous-cova/cova/blob/master/demo/demo.gif?raw=true)
