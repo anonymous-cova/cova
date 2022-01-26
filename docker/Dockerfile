@@ -16,29 +16,29 @@ RUN apt-get update && apt-get install -y \
         flex \
         libtool \
         gtk-doc-tools \
+        software-properties-common \
         unzip \
         zip \
         python3-setuptools \
         python3-wheel \
-        ninja-build \
-        && rm -rf /var/lib/apt/lists/*
+        ninja-build
 
-# Install pip
+# Install python3.7 and pip
 WORKDIR /root
-RUN curl -sSLO https://bootstrap.pypa.io/get-pip.py
-RUN ln -s -f /usr/bin/python3 /usr/bin/python && python ./get-pip.py
+RUN add-apt-repository ppa:deadsnakes/ppa -y && apt install -y python3.7 python3.7-distutils python3.7-dev
+RUN ln -s -f /usr/bin/python3.7 /usr/bin/python && python -m pip install --upgrade pip setuptools
 
 WORKDIR /root/nvidia
 COPY nv-tensorrt-repo-ubuntu1804-cuda11.4-trt8.2.0.6-ea-20210922_1-1_amd64.deb nv-tensorrt-repo-ubuntu1804-cuda11.4-trt8.2.0.6-ea-20210922_1-1_amd64.deb
 COPY install_trt.sh install_trt.sh
 RUN ./install_trt.sh
-
-WORKDIR /root
-RUN rm -rf nvidia
+RUN rm -rf /root/nvidia
 
 # Install common Python packages
 RUN python -m pip install meson six numpy wheel setuptools mock future
-RUN python -m pip install keras_preprocessing keras_applications --no-deps
+
+# Will install newest gstreamer later
+RUN apt-get remove --purge -y "*gst*" "*orc*"
 
 ###
 #
@@ -47,27 +47,20 @@ RUN python -m pip install keras_preprocessing keras_applications --no-deps
 ###
 FROM base-builder AS tf-builder
 
-WORKDIR /build/tf
-
 # Install bazel
-RUN curl -SLO https://github.com/bazelbuild/bazel/releases/download/3.7.2/bazel-3.7.2-installer-linux-x86_64.sh \
-        && bash bazel-3.7.2-installer-linux-x86_64.sh \
-        && rm bazel-3.7.2-installer-linux-x86_64.sh
+WORKDIR /usr/local/lib/bazel/bin
+RUN curl -fL https://releases.bazel.build/4.2.1/release/bazel-4.2.1-linux-x86_64 -o bazel \
+    && chmod +x bazel
+
 
 # Build Tensorflow
+WORKDIR /build/tf
 RUN git clone https://github.com/tensorflow/tensorflow.git
 WORKDIR tensorflow
-RUN git checkout v2.7.0
-
-# As for tensorflow 2.7, TensorRT 8.2 is not supported
-RUN git config user.email "anonymouscova@gmail.com" \
-    && git config user.name "Anonymous Cova" \
-    && git remote add patch https://github.com/christopherbate/tensorflow.git \
-    && git fetch patch \
-    && git cherry-pick --strategy=recursive -X theirs patch/tftrt-trt-8.2-support
+RUN git checkout v2.8.0-rc1
 
 COPY tf_configure.bazelrc .tf_configure.bazelrc
-RUN bazel build --config=opt --config=cuda //tensorflow/tools/pip_package:build_pip_package
+RUN bazel build --config=opt //tensorflow/tools/pip_package:build_pip_package
 RUN ./bazel-bin/tensorflow/tools/pip_package/build_pip_package /mnt
 
 ###
@@ -83,7 +76,7 @@ RUN git config --global http.sslVerify false
 RUN git clone https://gitlab.freedesktop.org/gstreamer/gstreamer.git
 WORKDIR /build/gst/gstreamer
 RUN git checkout 1.19.3
-RUN meson -Ddisable_gst_libav=true build
+RUN meson -Dlibav=disabled build
 RUN ninja -C build
 
 ###
@@ -121,21 +114,18 @@ RUN python -m pip install \
         PyYaml
 
 # Install GStreamer
-COPY --from=gst-builder /build/gst/gst-build /build/gst/gstreamer
-WORKDIR /build/gst/gst-build
+COPY --from=gst-builder /build/gst/gstreamer /build/gst/gstreamer
+WORKDIR /build/gst/gstreamer
 RUN ninja -C build install
 
 # Install Tensorflow
-COPY --from=tf-builder /mnt/tensorflow-2.7.0-cp36-cp36m-linux_x86_64.whl /mnt/tensorflow-2.7.0-cp36-cp36m-linux_x86_64.whl
-RUN python -m pip install /mnt/tensorflow-2.7.0-cp36-cp36m-linux_x86_64.whl && rm /mnt/tensorflow-2.7.0-cp36-cp36m-linux_x86_64.whl
+COPY --from=tf-builder /mnt/tensorflow-2.8.0rc1-cp37-cp37m-linux_x86_64.whl /mnt/tensorflow-2.8.0rc1-cp37-cp37m-linux_x86_64.whl
+RUN python -m pip install /mnt/tensorflow-2.8.0rc1-cp37-cp37m-linux_x86_64.whl && rm /mnt/tensorflow-2.8.0rc1-cp37-cp37m-linux_x86_64.whl
 
 # Install CMake
 WORKDIR /build/cmake/cmake-3.20.1
 COPY --from=cmake-builder /build/cmake/cmake-3.20.1 /build/cmake/cmake-3.20.1
 RUN make install -C /build/cmake/cmake-3.20.1 && rm -rf /build/cmake
-
-# Workaround
-RUN python -m pip install --upgrade numpy
 
 # Install Rust
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y

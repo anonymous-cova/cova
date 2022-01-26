@@ -23,6 +23,10 @@ Then, build on image on top of it with specified TF and GStreamer version
 ./docker/build.sh
 ./docker/launch.sh
 ```
+or, pull down the image from DockerHub with the following command
+```
+docker pull anonymouscova/cova
+```
 
 ### Setup inside launched Docker container
 
